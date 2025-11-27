@@ -356,12 +356,34 @@ export const rotaService = {
     return response.data;
   },
 
-  getOfficersTemplateUrl() {
-    return `${apiClient.defaults.baseURL}/admin/template/officers`;
+  async downloadOfficersTemplate() {
+    const response = await apiClient.get('/admin/template/officers', {
+      responseType: 'blob'
+    });
+    
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'officers_template.csv');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
   },
 
-  getShiftsTemplateUrl() {
-    return `${apiClient.defaults.baseURL}/admin/template/shifts`;
+  async downloadShiftsTemplate() {
+    const response = await apiClient.get('/admin/template/shifts', {
+      responseType: 'blob'
+    });
+    
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'shifts_template.csv');
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
   }
 };
 

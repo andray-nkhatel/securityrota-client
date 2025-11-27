@@ -53,12 +53,22 @@ const importState = async () => {
   }
 };
 
-const downloadOfficersTemplate = () => {
-  window.open(rotaService.getOfficersTemplateUrl(), '_blank');
+const downloadOfficersTemplate = async () => {
+  try {
+    await rotaService.downloadOfficersTemplate();
+    toast.add({ severity: 'success', summary: 'Success', detail: 'Template downloaded', life: 3000 });
+  } catch (error) {
+    toast.add({ severity: 'error', summary: 'Error', detail: error.userMessage || 'Failed to download template', life: 3000 });
+  }
 };
 
-const downloadShiftsTemplate = () => {
-  window.open(rotaService.getShiftsTemplateUrl(), '_blank');
+const downloadShiftsTemplate = async () => {
+  try {
+    await rotaService.downloadShiftsTemplate();
+    toast.add({ severity: 'success', summary: 'Success', detail: 'Template downloaded', life: 3000 });
+  } catch (error) {
+    toast.add({ severity: 'error', summary: 'Error', detail: error.userMessage || 'Failed to download template', life: 3000 });
+  }
 };
 
 const onOfficersFileSelect = (event) => {
