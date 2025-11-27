@@ -37,18 +37,35 @@ const loadRota = async () => {
     weekRota.value = await rotaService.getWeekRota(weekStartStr.value);
   } catch (error) {
     weekRota.value = null;
+    console.error('Error loading rota:', error);
     if (error.response?.status !== 404) {
-      toast.add({ severity: 'error', summary: 'Error', detail: 'Failed to load rota', life: 3000 });
+      const errorMsg = error.userMessage || error.message || 'Failed to load rota';
+      toast.add({ severity: 'error', summary: 'Error', detail: errorMsg, life: 3000 });
     }
   } finally {
     loading.value = false;
   }
 };
 
+// Ensure date is a Sunday
+const ensureSunday = (date) => {
+  const d = new Date(date);
+  const dayOfWeek = d.getDay();
+  if (dayOfWeek !== 0) {
+    d.setDate(d.getDate() - dayOfWeek);
+  }
+  return d;
+};
+
 const generateRota = async () => {
+  // Ensure we're using a Sunday
+  const sunday = ensureSunday(selectedDate.value);
+  selectedDate.value = sunday;
+  const sundayStr = formatDate(sunday);
+  
   generating.value = true;
   try {
-    await rotaService.generateWeekRota(weekStartStr.value);
+    await rotaService.generateWeekRota(sundayStr);
     toast.add({ severity: 'success', summary: 'Success', detail: 'Rota generated successfully', life: 3000 });
     loadRota();
   } catch (error) {
@@ -78,12 +95,7 @@ const downloadDocx = async () => {
 
 const onDateChange = () => {
   // Adjust to nearest Sunday
-  const date = new Date(selectedDate.value);
-  const dayOfWeek = date.getDay();
-  if (dayOfWeek !== 0) {
-    date.setDate(date.getDate() - dayOfWeek);
-    selectedDate.value = date;
-  }
+  selectedDate.value = ensureSunday(selectedDate.value);
   loadRota();
 };
 
@@ -102,11 +114,13 @@ const nextWeek = () => {
 };
 
 const getOfficersOnDuty = (officers) => {
-  return officers?.filter(o => o.status === 'on_duty') || [];
+  if (!officers || !Array.isArray(officers)) return [];
+  return officers.filter(o => o && o.status === 'on_duty');
 };
 
 const getOfficersOffDuty = (officers) => {
-  return officers?.filter(o => o.status === 'off_duty') || [];
+  if (!officers || !Array.isArray(officers)) return [];
+  return officers.filter(o => o && o.status === 'off_duty');
 };
 </script>
 
@@ -161,8 +175,8 @@ const getOfficersOffDuty = (officers) => {
             <tr>
               <th class="shift-type-col">SHIFT TYPE</th>
               <th v-for="day in weekRota.days" :key="day.date" class="day-col">
-                <div class="day-name">{{ day.day_of_week.toUpperCase() }}</div>
-                <div class="day-date">{{ day.date.split('-').reverse().join('/') }}</div>
+                <div class="day-name">{{ (day.day_of_week || '').toUpperCase() }}</div>
+                <div class="day-date">{{ day.date ? day.date.split('-').reverse().join('/') : '' }}</div>
               </th>
             </tr>
           </thead>
@@ -171,7 +185,7 @@ const getOfficersOffDuty = (officers) => {
               <td class="shift-label">DAY SHIFT</td>
               <td v-for="day in weekRota.days" :key="day.date + '-day'">
                 <div v-for="officer in getOfficersOnDuty(day.day_shift)" :key="officer.name" class="officer-name">
-                  {{ officer.name.toUpperCase() }}
+                  {{ (officer.name || '').toUpperCase() }}
                 </div>
               </td>
             </tr>
@@ -179,16 +193,16 @@ const getOfficersOffDuty = (officers) => {
               <td class="shift-label">NIGHT SHIFT</td>
               <td v-for="day in weekRota.days" :key="day.date + '-night'">
                 <div v-for="officer in getOfficersOnDuty(day.night_shift)" :key="officer.name" class="officer-name">
-                  {{ officer.name.toUpperCase() }}
+                  {{ (officer.name || '').toUpperCase() }}
                 </div>
               </td>
             </tr>
             <tr class="off-duty-row">
               <td class="shift-label">DAY-OFF</td>
               <td v-for="day in weekRota.days" :key="day.date + '-off'">
-                <div v-for="officer in [...getOfficersOffDuty(day.day_shift), ...getOfficersOffDuty(day.night_shift)]" 
+                <div v-for="officer in [...getOfficersOffDuty(day.day_shift || []), ...getOfficersOffDuty(day.night_shift || [])]" 
                   :key="officer.name" class="officer-name off-duty">
-                  {{ officer.name.toUpperCase() }}
+                  {{ (officer.name || '').toUpperCase() }}
                 </div>
               </td>
             </tr>
