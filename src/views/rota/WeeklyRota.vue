@@ -67,6 +67,15 @@ const downloadPdf = async () => {
   }
 };
 
+const downloadDocx = async () => {
+  try {
+    await rotaService.downloadWeekRotaDocx(weekStartStr.value);
+    toast.add({ severity: 'success', summary: 'Success', detail: 'DOCX downloaded', life: 3000 });
+  } catch (error) {
+    toast.add({ severity: 'error', summary: 'Error', detail: error.userMessage || 'Failed to download DOCX', life: 3000 });
+  }
+};
+
 const onDateChange = () => {
   // Adjust to nearest Sunday
   const date = new Date(selectedDate.value);
@@ -121,7 +130,9 @@ const getOfficersOffDuty = (officers) => {
         <Button v-if="!weekRota" label="Generate Rota" icon="pi pi-cog" 
           :loading="generating" @click="generateRota" class="mr-2" />
         <Button v-if="weekRota" label="Download PDF" icon="pi pi-file-pdf" 
-          severity="secondary" @click="downloadPdf" />
+          severity="secondary" @click="downloadPdf" class="mr-2" />
+        <Button v-if="weekRota" label="Download DOCX" icon="pi pi-file-word" 
+          severity="secondary" @click="downloadDocx" />
       </template>
     </Toolbar>
 

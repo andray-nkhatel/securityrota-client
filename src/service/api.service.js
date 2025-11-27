@@ -342,6 +342,24 @@ export const rotaService = {
     window.URL.revokeObjectURL(url);
   },
 
+  async downloadWeekRotaDocx(weekStart) {
+    const response = await apiClient.get('/rota/week/docx', {
+      params: { week_start: weekStart },
+      responseType: 'blob'
+    });
+    
+    const url = window.URL.createObjectURL(new Blob([response.data], { 
+      type: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+    }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `rota_${weekStart}.docx`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
+  },
+
   async importState(weekStart, dayShiftTeam) {
     const response = await apiClient.post('/admin/import-state', {
       week_start: weekStart,
