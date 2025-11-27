@@ -9,10 +9,11 @@ const generating = ref(false);
 const weekRota = ref(null);
 const selectedDate = ref(getNextSunday());
 
-// Get next Sunday from today
+// Get next Sunday from today (for initial load)
 function getNextSunday() {
   const today = new Date();
   const dayOfWeek = today.getDay();
+  // If today is Sunday, use today. Otherwise, go to next Sunday
   const daysUntilSunday = dayOfWeek === 0 ? 0 : 7 - dayOfWeek;
   const nextSunday = new Date(today);
   nextSunday.setDate(today.getDate() + daysUntilSunday);
@@ -47,10 +48,13 @@ const loadRota = async () => {
   }
 };
 
-// Ensure date is a Sunday
+// Ensure date is a Sunday - finds the Sunday that starts the week containing this date
+// If the date is in the current week (Mon-Sat), it goes back to Sunday of this week
+// This allows users to generate for the current week or select any date in a future week
 const ensureSunday = (date) => {
   const d = new Date(date);
   const dayOfWeek = d.getDay();
+  // If not Sunday, go back to the Sunday that starts this week
   if (dayOfWeek !== 0) {
     d.setDate(d.getDate() - dayOfWeek);
   }
