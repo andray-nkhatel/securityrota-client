@@ -326,8 +326,20 @@ export const rotaService = {
     return response.data;
   },
 
-  getWeekRotaPdfUrl(weekStart) {
-    return `${apiClient.defaults.baseURL}/rota/week/pdf?week_start=${weekStart}`;
+  async downloadWeekRotaPdf(weekStart) {
+    const response = await apiClient.get('/rota/week/pdf', {
+      params: { week_start: weekStart },
+      responseType: 'blob'
+    });
+    
+    const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `rota_${weekStart}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
   },
 
   async importState(weekStart, dayShiftTeam) {

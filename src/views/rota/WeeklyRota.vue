@@ -58,9 +58,13 @@ const generateRota = async () => {
   }
 };
 
-const downloadPdf = () => {
-  const url = rotaService.getWeekRotaPdfUrl(weekStartStr.value);
-  window.open(url, '_blank');
+const downloadPdf = async () => {
+  try {
+    await rotaService.downloadWeekRotaPdf(weekStartStr.value);
+    toast.add({ severity: 'success', summary: 'Success', detail: 'PDF downloaded', life: 3000 });
+  } catch (error) {
+    toast.add({ severity: 'error', summary: 'Error', detail: error.userMessage || 'Failed to download PDF', life: 3000 });
+  }
 };
 
 const onDateChange = () => {
