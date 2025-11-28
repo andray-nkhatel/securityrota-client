@@ -174,8 +174,7 @@ const getOfficersOffDuty = (officers) => {
           :loading="generating" @click="generateRota" class="mr-2" />
         <Button v-if="weekRota" label="Download PDF" icon="pi pi-file-pdf" 
           severity="secondary" @click="downloadPdf" class="mr-2" />
-       <!-- <Button v-if="weekRota" label="Download DOCX" icon="pi pi-file-word" 
-          severity="secondary" @click="downloadDocx" /> -->
+       
       </template>
     </Toolbar>
 
