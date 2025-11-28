@@ -1,7 +1,7 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue';
-import { useToast } from 'primevue/usetoast';
 import { rotaService } from '@/service/api.service';
+import { useToast } from 'primevue/usetoast';
+import { computed, onMounted, ref } from 'vue';
 
 const toast = useToast();
 const loading = ref(false);
@@ -35,11 +35,36 @@ onMounted(() => {
 const loadRota = async () => {
   loading.value = true;
   try {
+    // Check if user is authenticated
+    const token = localStorage.getItem('token');
+    if (!token) {
+      toast.add({ 
+        severity: 'warn', 
+        summary: 'Authentication Required', 
+        detail: 'Please log in to view rotas', 
+        life: 3000 
+      });
+      loading.value = false;
+      return;
+    }
+    
     weekRota.value = await rotaService.getWeekRota(weekStartStr.value);
   } catch (error) {
     weekRota.value = null;
     console.error('Error loading rota:', error);
-    if (error.response?.status !== 404) {
+    
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      toast.add({ 
+        severity: 'error', 
+        summary: 'Authentication Error', 
+        detail: 'Session expired. Please log in again.', 
+        life: 5000 
+      });
+      // Redirect to login after a delay
+      setTimeout(() => {
+        window.location.href = '/#/auth/login';
+      }, 2000);
+    } else if (error.response?.status !== 404) {
       const errorMsg = error.userMessage || error.message || 'Failed to load rota';
       toast.add({ severity: 'error', summary: 'Error', detail: errorMsg, life: 3000 });
     }
@@ -149,8 +174,8 @@ const getOfficersOffDuty = (officers) => {
           :loading="generating" @click="generateRota" class="mr-2" />
         <Button v-if="weekRota" label="Download PDF" icon="pi pi-file-pdf" 
           severity="secondary" @click="downloadPdf" class="mr-2" />
-        <Button v-if="weekRota" label="Download DOCX" icon="pi pi-file-word" 
-          severity="secondary" @click="downloadDocx" />
+       <!-- <Button v-if="weekRota" label="Download DOCX" icon="pi pi-file-word" 
+          severity="secondary" @click="downloadDocx" /> -->
       </template>
     </Toolbar>
 

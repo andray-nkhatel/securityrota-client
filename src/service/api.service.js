@@ -57,12 +57,18 @@ if (import.meta.env.DEV) {
 apiClient.interceptors.request.use(
   config => {
     const token = localStorage.getItem('token');
-    if (token && !config.url.includes('/auth/login')) {
+    // Always add token if it exists (except for login)
+    if (token) {
       config.headers.Authorization = `Bearer ${token}`;
+    } else if (!config.url.includes('/auth/login')) {
+      console.warn('⚠️ No token found for request:', config.url);
     }
     
     if (import.meta.env.DEV) {
-      console.log(`🚀 ${config.method.toUpperCase()} ${config.url}`, config.data);
+      console.log(`🚀 ${config.method.toUpperCase()} ${config.url}`, {
+        hasToken: !!token,
+        headers: config.headers
+      });
     }
     
     return config;
@@ -359,6 +365,7 @@ export const rotaService = {
     link.remove();
     window.URL.revokeObjectURL(url);
   },
+
 
   async importState(weekStart, dayShiftTeam) {
     const response = await apiClient.post('/admin/import-state', {
